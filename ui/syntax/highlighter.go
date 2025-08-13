@@ -38,10 +38,21 @@ const (
 	highlightJmax
 	highlightS1
 	highlightS2
+	highlightS3
+	highlightS4
 	highlightH1
 	highlightH2
 	highlightH3
 	highlightH4
+	highlightI1
+	highlightI2
+	highlightI3
+	highlightI4
+	highlightI5
+	highlightJ1
+	highlightJ2
+	highlightJ3
+	highlightItime
 	highlightWarning
 	highlightError
 )
@@ -371,6 +382,14 @@ func (s stringSpan) isValidNetwork() bool {
 	return s.isValidIPv4() || s.isValidIPv6()
 }
 
+func (s stringSpan) isValidIField() bool {
+	return s.len != 0
+}
+
+func (s stringSpan) isValidJField() bool {
+	return s.len != 0
+}
+
 type field int32
 
 const (
@@ -390,10 +409,21 @@ const (
 	fieldJmax
 	fieldS1
 	fieldS2
+	fieldS3
+	fieldS4
 	fieldH1
 	fieldH2
 	fieldH3
 	fieldH4
+	fieldI1
+	fieldI2
+	fieldI3
+	fieldI4
+	fieldI5
+	fieldJ1
+	fieldJ2
+	fieldJ3
+	fieldItime
 	fieldPeerSection
 	fieldPublicKey
 	fieldPresharedKey
@@ -455,6 +485,10 @@ func (s stringSpan) field() field {
 		return fieldS1
 	case s.isCaselessSame("S2"):
 		return fieldS2
+	case s.isCaselessSame("S3"):
+		return fieldS3
+	case s.isCaselessSame("S4"):
+		return fieldS4
 	case s.isCaselessSame("H1"):
 		return fieldH1
 	case s.isCaselessSame("H2"):
@@ -463,6 +497,24 @@ func (s stringSpan) field() field {
 		return fieldH3
 	case s.isCaselessSame("H4"):
 		return fieldH4
+	case s.isCaselessSame("I1"):
+		return fieldI1
+	case s.isCaselessSame("I2"):
+		return fieldI2
+	case s.isCaselessSame("I3"):
+		return fieldI3
+	case s.isCaselessSame("I4"):
+		return fieldI4
+	case s.isCaselessSame("I5"):
+		return fieldI5
+	case s.isCaselessSame("J1"):
+		return fieldJ1
+	case s.isCaselessSame("J2"):
+		return fieldJ2
+	case s.isCaselessSame("J3"):
+		return fieldJ3
+	case s.isCaselessSame("Itime"):
+		return fieldItime
 	}
 	return fieldInvalid
 }
@@ -593,6 +645,10 @@ func (hsa *highlightSpanArray) highlightValue(parent, s stringSpan, section fiel
 		hsa.append(parent.s, s, validateHighlight(s.isValidUint(false, 0, 65_535), highlightS1))
 	case fieldS2:
 		hsa.append(parent.s, s, validateHighlight(s.isValidUint(false, 0, 65_535), highlightS2))
+	case fieldS3:
+		hsa.append(parent.s, s, validateHighlight(s.isValidUint(false, 0, 65_535), highlightS3))
+	case fieldS4:
+		hsa.append(parent.s, s, validateHighlight(s.isValidUint(false, 0, 65_535), highlightS4))
 	case fieldH1:
 		hsa.append(parent.s, s, validateHighlight(s.isValidUint(false, 0, 2_147_483_647), highlightH1))
 	case fieldH2:
@@ -601,6 +657,24 @@ func (hsa *highlightSpanArray) highlightValue(parent, s stringSpan, section fiel
 		hsa.append(parent.s, s, validateHighlight(s.isValidUint(false, 0, 2_147_483_647), highlightH3))
 	case fieldH4:
 		hsa.append(parent.s, s, validateHighlight(s.isValidUint(false, 0, 2_147_483_647), highlightH4))
+	case fieldI1:
+		hsa.append(parent.s, s, validateHighlight(s.isValidIField(), highlightI1))
+	case fieldI2:
+		hsa.append(parent.s, s, validateHighlight(s.isValidIField(), highlightI2))
+	case fieldI3:
+		hsa.append(parent.s, s, validateHighlight(s.isValidIField(), highlightI3))
+	case fieldI4:
+		hsa.append(parent.s, s, validateHighlight(s.isValidIField(), highlightI4))
+	case fieldI5:
+		hsa.append(parent.s, s, validateHighlight(s.isValidIField(), highlightI5))
+	case fieldJ1:
+		hsa.append(parent.s, s, validateHighlight(s.isValidJField(), highlightJ1))
+	case fieldJ2:
+		hsa.append(parent.s, s, validateHighlight(s.isValidJField(), highlightJ2))
+	case fieldJ3:
+		hsa.append(parent.s, s, validateHighlight(s.isValidJField(), highlightJ3))
+	case fieldItime:
+		hsa.append(parent.s, s, validateHighlight(s.isValidUint(false, 0, 2_147_483_647), highlightItime))
 	default:
 		hsa.append(parent.s, s, highlightError)
 	}
