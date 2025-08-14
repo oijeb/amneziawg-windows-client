@@ -1,0 +1,92 @@
+name: Build AmneziaWG Windows Client
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24.4'
+        
+    - name: Install dependencies
+      run: |
+        echo "Dependencies will be downloaded automatically by build.bat"
+        
+    - name: Build application and installer
+      run: |
+        .\build.bat
+        
+        echo "Current directory: $(Get-Location)"
+        echo "Installer directory contents before build:"
+        Get-ChildItem "installer" -Recurse | Format-Table Name, Length, LastWriteTime
+        
+        cd installer
+        echo "Changed to installer directory: $(Get-Location)"
+        echo "Installer directory contents:"
+        Get-ChildItem -Recurse | Format-Table Name, Length, LastWriteTime
+        
+        $result = .\build.bat
+        $exitCode = $LASTEXITCODE
+        
+        echo "Installer build completed with exit code: $exitCode"
+        echo "Installer build result: $result"
+        
+        if ($exitCode -ne 0) {
+          echo "ERROR: Installer build failed with exit code $exitCode"
+          exit $exitCode
+        }
+        
+        echo "Installer build completed. Directory contents after build:"
+        Get-ChildItem -Recurse | Format-Table Name, Length, LastWriteTime
+        
+        cd ..
+        echo "Back to root directory: $(Get-Location)"
+        
+    - name: Upload main application artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: amneziawg-main-app-${{ github.sha }}
+        path: |
+          x86/
+          amd64/
+          arm64/
+        retention-days: 7
+        
+    - name: Check installer output
+      run: |
+        echo "Checking installer output directory..."
+        echo "Current directory: $(Get-Location)"
+        
+        if (Test-Path "installer/dist") {
+          echo "Installer dist directory exists:"
+          Get-ChildItem "installer/dist" -Recurse | Format-Table Name, Length, LastWriteTime
+        } else {
+          echo "Installer dist directory does not exist!"
+          echo "Checking if dist was created in installer subdirectory:"
+          if (Test-Path "installer/installer/dist") {
+            echo "Found dist in installer/installer/dist:"
+            Get-ChildItem "installer/installer/dist" -Recurse | Format-Table Name, Length, LastWriteTime
+          }
+          echo "Current installer directory contents:"
+          Get-ChildItem "installer" -Recurse | Format-Table Name, Length, LastWriteTime
+        }
+        
+    - name: Upload installer artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: amneziawg-installer-${{ github.sha }}
+        path: |
+          installer/dist/
+          installer/installer/dist/
+        retention-days: 7
